@@ -132,17 +132,17 @@ def populate_instance(msg, inst):
 
 def _from_inst(inst, rostype):
     global bson_only_mode
+    if(bson_only_mode is None):bson_only_mode = rospy.get_param('~bson_only_mode', False)
     # Special case for uint8[], we encode the string
     for binary_type, expression in ros_binary_types_list_braces:
         if expression.sub(binary_type, rostype) in ros_binary_types:
             encoded = get_encoder()(inst)
-            return encoded if python2 else encoded.decode('ascii')
+            return encoded if python2 or bson_only_mode else encoded.decode('ascii')
 
     # Check for time or duration
     if rostype in ros_time_types:
         return {"secs": inst.secs, "nsecs": inst.nsecs}
 
-    if(bson_only_mode is None):bson_only_mode = rospy.get_param('~bson_only_mode', False)
     # Check for primitive types
     if rostype in ros_primitive_types:
         #JSON does not support Inf and NaN. They are mapped to None and encoded as null
